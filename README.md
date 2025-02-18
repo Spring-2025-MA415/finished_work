@@ -1,4 +1,4 @@
-# MA415 Discussions
+# MA415 Finished Work
 
 ## Folders
 ### Discussions - File Descriptions
