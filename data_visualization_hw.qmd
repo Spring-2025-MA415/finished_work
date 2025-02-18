@@ -1,0 +1,46 @@
+---
+title: "data_visualization_hw"
+format: html
+editor: visual
+---
+
+## Initializations
+
+```{r}
+library(ggplot2)
+data("iris")
+iris
+```
+
+## Problem 1: Using Facets in ggplot
+
+```{r}
+ggplot(iris) + 
+  geom_point(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
+  facet_wrap(~ Species)
+
+```
+
+## Problem 2: Using Legends in ggplot
+
+```{r}
+ggplot(iris) + 
+  geom_point(aes(x = Petal.Length, y = Petal.Width, color = Species)) + 
+  facet_wrap(~ Species) + 
+  labs(color = "Species of Iris", shape = "Species of Iris")
+```
+
+## Problem 3: Using Boxplots and Violin Plots in ggplot
+
+```{r}
+# boxplot
+ggplot(iris) + 
+  geom_boxplot(aes(x = Species, y = Sepal.Width, color = Species))
+
+```
+
+```{r}
+# violin plot
+ggplot(iris) + 
+  geom_violin(aes(x = Species, y = Petal.Length, color = Species))
+```
