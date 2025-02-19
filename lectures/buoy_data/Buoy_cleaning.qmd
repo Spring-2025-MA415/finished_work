@@ -102,15 +102,23 @@ Try to look more into data and get some visualizations using the one taught in t
 Have at least a question or two or a direction to study for in buoy data.
 
 ```{r}
-ggplot(combined_data1) +
-  geom_line(aes(combined_data1$datetime, combined_data1$BAR))
+ggsave(file = "BAR_datetime.png", plot = ggplot(combined_data1) +
+  geom_line(aes(combined_data1$datetime, combined_data1$BAR)))
 
+ggsave(file = "ATMP_WD.png", plot = 
 ggplot(combined_data1) +
-  geom_point(aes(combined_data1$ATMP, combined_data1$WD))
+  geom_point(aes(combined_data1$ATMP, combined_data1$WD)))
 
+ggsave(file = "YYYY_APD.png", plot = 
 ggplot(combined_data1) +
-  geom_boxplot(aes(combined_data1$YYYY, combined_data1$APD))
+  geom_boxplot(aes(combined_data1$YYYY, combined_data1$APD)))
 
+ggsave(file = "YYYY_WD.png", plot = 
 ggplot(combined_data1) +
-  geom_boxplot(aes(combined_data1$YYYY, combined_data1$WD))
+  geom_boxplot(aes(combined_data1$YYYY, combined_data1$WD)))
+
+ggsave(file = "WTMP_ATMP.png", plot = 
+ggplot(combined_data1, aes(combined_data1$WTMP, combined_data1$ATMP)) +
+  geom_point() + 
+  geom_smooth(method = "lm"))
 ```
