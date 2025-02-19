@@ -1,0 +1,116 @@
+---
+title: "Buoy_Students"
+format: pdf
+editor: visual
+---
+
+## Packages to Install
+
+```{r, warning = FALSE}
+library(data.table)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(zoo)
+library(tibble)
+library(readr)
+```
+
+## Compiling all years' data
+
+1.  Try to remember why 2007 is the split year
+2.  Why are using different functions to read data prior and post 2007?
+3.  What are some new function you got to know from following code? what do these functions do?
+
+```{r, warning=FALSE, message=FALSE}
+file_root <- "https://www.ndbc.noaa.gov/view_text_file.php?filename=44013h"
+tail <- ".txt.gz&dir=data/historical/stdmet/"
+
+load_buoy_data <- function(year) {
+  path <- paste0(file_root, year, tail)
+  
+  
+  if (year < 2007) {
+  header <- scan(path, what = 'character', nlines = 1)
+  buoy <- read.table(path, fill = TRUE, header = TRUE, sep = "")
+  buoy <- add_column(buoy, mm = NA, .after = "hh")
+  buoy <- add_column(buoy, TIDE = NA, .after = "VIS")
+    
+  } else {
+  header <- scan(path, what = 'character', nlines = 1)  
+  buoy <- fread(path, header = FALSE, skip = 1, fill = TRUE)
+
+    setnames(buoy, header)
+  }
+  
+  #return(buoy)
+}
+
+all_data1 <- lapply(1985:2024, load_buoy_data)
+
+combined_data1 <- rbindlist(all_data1, fill = TRUE)
+```
+
+#### Q1: Can you try to compile atleast 5 buoys data for some years?
+
+#### Q2: Try some other method for compiling all the data other than the one mentioned above.
+
+## Cleaning and Organizing the data
+
+We start by merging all different version of `Year` column. We do same with other columns which are same but having data for certain set of years. We remove the remaining columns after merging them.
+
+Creating datetime column using `lubridate()`
+
+```{r}
+combined_data1 <- combined_data1 %>%
+  mutate(
+    YY = as.character(YY),
+    `#YY` = as.character(`#YY`),
+    YYYY = as.character(YYYY)
+  )
+
+# Combine year columns safely using coalesce
+combined_data1 <- combined_data1 %>%
+  mutate(YYYY = coalesce(YYYY, `#YY`, YY))
+combined_data1 <- combined_data1 %>%
+  mutate(BAR = coalesce(as.numeric(BAR), as.numeric(PRES)),  # Convert BAR and PRES to numeric
+    WD = coalesce(as.numeric(WD), as.numeric(WDIR)))
+
+combined_data1 <- combined_data1 %>%
+  select(-TIDE, -TIDE.1, -mm,- WDIR, -PRES,-`#YY`,-YY)
+
+combined_data1$datetime <- ymd_h(paste(combined_data1$YYYY, combined_data1$MM, combined_data1$DD, combined_data1$hh, sep = "-"))
+
+combined_data1 <- combined_data1 %>%
+  mutate(across(everything(), 
+                ~ na_if(as.numeric(as.character(.)), 99) %>%
+                na_if(999) %>%
+                na_if(9999)))
+
+#summary(combined_data)
+#str(combined_data)
+#str(combined_data$datetime)
+if (!inherits(combined_data1$datetime, "POSIXct")) {
+  combined_data1$datetime <- ymd_h(paste(combined_data1$YYYY, combined_data1$MM, combined_data1$DD, combined_data1$hh, sep = "-"))
+}
+```
+
+# Homework
+
+Try to look more into data and get some visualizations using the one taught in the discussion and `ggplot()`
+
+Have at least a question or two or a direction to study for in buoy data.
+
+```{r}
+ggplot(combined_data1) +
+  geom_line(aes(combined_data1$datetime, combined_data1$BAR))
+
+ggplot(combined_data1) +
+  geom_point(aes(combined_data1$ATMP, combined_data1$WD))
+
+ggplot(combined_data1) +
+  geom_boxplot(aes(combined_data1$YYYY, combined_data1$APD))
+
+ggplot(combined_data1) +
+  geom_boxplot(aes(combined_data1$YYYY, combined_data1$WD))
+```
