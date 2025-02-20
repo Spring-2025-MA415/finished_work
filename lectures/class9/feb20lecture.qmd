@@ -1,0 +1,92 @@
+---
+title: "feb20"
+author: "MA415"
+format: html
+editor: visual
+---
+
+## Quarto
+
+```{r}
+#| label: first chunk
+#| echo: true  # when true, shows code and output
+
+vector1 <- 1:9 
+vector1 %>% mean()
+```
+
+## Exercises from Intro to dplyr
+
+### Row Operations
+
+```{r}
+#| label: row operations
+#| warning: false
+#| message: false
+
+library(tidyverse)
+
+# dim(starwars)
+
+starwars
+
+starwars[starwars$hair_color=="brown",]
+
+starwars |> arrange(height) # ascending order
+starwars |> arrange(desc(height)) # descending order
+```
+
+### Random Operations
+
+Don't forget to set the seed for the random number generator.
+
+```{r}
+
+# random uniform distribution
+set.seed(2020)
+
+runif(100)
+
+```
+
+### Column Operations
+
+```{r}
+#| label: col operations
+
+colnames(starwars)
+
+cols_i_like <- starwars |> select(hair_color, skin_color, eye_color)
+
+cols2 <- starwars |> select(ends_with("color"))
+```
+
+### Mutate means add a variable
+
+```{r}
+#| label: mutate
+
+
+mod1 <- starwars |> select(name, height, mass) |> mutate(hgt_m = height/100)
+
+```
+
+## A quick trip into groups
+
+```{r}
+
+species <- starwars |> group_by(species) |> tally()
+```
+
+## TidyR
+
+```{r}
+
+relig_income
+
+relig_income |> pivot_longer(
+  cols = !religion,
+  names_to = "income",
+  values_to = "count",
+)
+```
