@@ -1,14 +1,13 @@
 # MA415 Finished Work
 
-## Folders
-### Discussions - File Descriptions
+## Discussions - File Descriptions
 * data_visualization_hw.qmd
   * Using the iris dataset to create plots using facets and legends in ggplot(), as well as creating a boxplot and a violin plot
 
-### Lectures - File Descriptions
+## Lectures - File Descriptions
 * chapter3problems.R
   * Finished the Chapter 3 problems from "R for Data Science"
-#### buoy_data - File Descriptions
+### buoy_data - File Descriptions
 * Buoy_cleaning.qmd
   * Outline from classs cleaning up the buoy data. Also used to create graphs
 * ATMP_WD.png
