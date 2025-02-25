@@ -1,0 +1,29 @@
+---
+title: "Strawberry Exploration"
+format: html
+editor: visual
+---
+
+## Preliminaries
+
+```{r}
+## if necessary, import libraries
+library(dplyr)
+```
+
+```{r}
+strawberry <- read.csv("straw1.csv")
+strawberry
+```
+
+```{r}
+glimpse(strawberry)
+```
+
+unique(strawberry\$Week.Ending) has all NA values. unique(strawberry\$Geo.Level) has all "STATE" values. We can remove these columns.
+
+```{r}
+for (i in 1:dim(strawberry)[2]) {
+  a = unique(strawberry[,i])
+}
+```

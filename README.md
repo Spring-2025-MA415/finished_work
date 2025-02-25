@@ -25,3 +25,8 @@
   * Exercises where we reviewed dplyr
 * vector_examples.R
   * Brief example of working with magrittr and the pipe operator (%>%)
+### strawberries - File Descriptions
+* strawberries.qmd
+  * Using straw1.csv to explore the dataset
+* straw1.csv
+  * strawberry csv file that we're working wtih
