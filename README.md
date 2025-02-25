@@ -20,3 +20,8 @@
   * Boxplot of year against WD (wind direction)
 * BAR_datetime.png
   * Line plot of datetime against BAR (sea level pressure)
+### class9 - File Descriptions
+* feb20lecture.qmd
+  * Exercises where we reviewed dplyr
+* vector_examples.R
+  * Brief example of working with magrittr and the pipe operator (%>%)
