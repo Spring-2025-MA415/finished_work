@@ -27,3 +27,21 @@ for (i in 1:dim(strawberry)[2]) {
   a = unique(strawberry[,i])
 }
 ```
+
+drop_one_value_col(df): drop a column that only contains one value
+
+```{r}
+drop_one_value_col = function(df) {
+  df %>%
+    select(where(~ n_distinct(.) > 1))
+}
+straw_cleaned = drop_one_value_col(strawberry)
+straw_cleaned
+```
+
+```{r}
+# separate into 3 tibbles by year
+strawberry_2023 = straw_cleaned %>% filter(Year == 2023)
+strawberry_2021 = straw_cleaned %>% filter(Year == 2021)
+strawberry_2019 = straw_cleaned %>% filter(Year == 2019)
+```
