@@ -1,0 +1,107 @@
+---
+title: "straw1"
+author: "ma415"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+#URL=https://quickstats.nass.usda.gov/results/806E4FDF-C7DF-3DCC-8381-B220597B08EC
+
+# Preparing data for analysis
+
+## Introduction: foundations
+
+Before we begin to work with the strawberry data, let's talk about how we will approach the work.
+
+### Data cleaning and organization
+
+Cleaning and organizing data for analysis is an essential skill for data scientists. Serious data analyses must be presented with the data on which the results depend. The credibility of data analysis and modelling depends on the care taken in data preparation and organization.
+
+#### References
+
+In their handbook ["An introduction to data cleaning with R" by Edwin de Jonge and Mark van der Loo](https://cran.r-project.org/doc/contrib/de_Jonge+van_der_Loo-Introduction_to_data_cleaning_with_R.pdf), de Jonge and van der Loo go into detail about specific data cleaning isssues and how to handle them in R.
+
+["Problems, Methods, and Challenges in Comprehensive Data Cleansing" by Heiko Müller and Johann-Christoph Freytag](https://www.researchgate.net/profile/Heiko-Mueller/publication/228929938_Problems_methods_and_challenges_in_comprehensive_data_cleansing/links/09e415101b58541e2c000000/Problems-methods-and-challenges-in-comprehensive-data-cleansing.pdf) is a good companion to the de Jonge and van der Loo handbook, offering additional issues in their discussion.
+
+### Attitudes
+
+Mechanistic descriptions of data cleaning methods are insufficient.
+
+#### Data is the product (or by-product) of purposeful human activity
+
+Much of the data used in analysis accessed on local databases or online which may create the impression that the data have been carefully curated. Beware. Data are produced by people for a purpose, with a point-of-view, and at a time and location that may affect the data. The provenance and lineage of the data are meta data you should include when reporting analysis. Data collection is purposeful human activity with all of the risks and weaknesses that are part of any purposeful human activity.
+
+#### Data is language
+
+Data has meaning. Data can be included in sentences related to the meaning of the data. Cleaning and organizing data should be informed by the meaning the data convey and how that meaning relates to the research you are doing do achieve this important result.
+
+-   Immerse yourself in the data. Put data into context.
+
+-   Visualize the data to find problems, confirm your understandings, and plan your data organization. People do a bad job of seeing meaningful patterns in data but a good job of seeing patterns of all kinds when data are rendered as plots. As you product and show visualizations, ask your self and those who view your presentations, "what do you see?" and "what do you wonder?"
+
+## Example: Strawberries
+
+### Public information
+
+[WHO says strawberries may not be so safe for you--2017March16](https://med.news.am/eng/news/13621/who-says-strawberries-may-not-be-so-safe-for-you.html)
+
+[Pesticides + poison gases = cheap, year-round strawberries 2019March20](https://www.ewg.org/foodnews/strawberries.php)
+
+[Multistate Outbreak of Hepatitis A Virus Infections Linked to Fresh Organic Strawberries-2022March5](https://www.cdc.gov/hepatitis/outbreaks/fresh-strawberries-2022/?CDC_AAref_Val=https://www.cdc.gov/hepatitis/outbreaks/2022/hav-contaminated-food/index.htm)
+
+[Strawberry makes list of cancer-fighting foods-2023May31](https://issuu.com/mechlocal/docs/053123_mech_asf/s/25386339)
+
+## What is the question?
+
+-   Where they are grown? By whom?
+
+-   Are they really loaded with carcinogenic poisons?
+
+-   Are they really good for your health? Bad for your health?
+
+-   Are organic strawberries carriers of deadly diseases?
+
+-   When I go to the market should I buy conventional or organic strawberries?
+
+## The data
+
+The data set for this assignment has been selected from:
+
+[strawberries 2025feb24](https://quickstats.nass.usda.gov/results/806E4FDF-C7DF-3DCC-8381-B220597B08EC)
+
+<!-- and has been stored on the blackboard as strawberries25_v3.csv. -->
+
+## USDA NASS
+
+```{r}
+#| label: load libraries
+#| warning: false
+#| message: false
+
+library(knitr)  
+library(kableExtra)
+library(tidyverse)
+library(stringr)
+```
+
+## Read the file
+
+```{r}
+#| label: read data - glimpse 
+
+strawberry <- read_csv("straw1.csv", col_names = TRUE)
+
+#glimpse(strawberry)
+```
+
+Examine the data. How is it organized?
+
+unique(strawberry\$Week.Ending) has all NA values. unique(strawberry\$Geo.Level) has all "STATE" values. We can remove these columns.
+
+```{r}
+for (i in 1:dim(strawberry)[2]) {
+  a = unique(strawberry[,i])
+}
+```

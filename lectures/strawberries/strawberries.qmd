@@ -13,35 +13,75 @@ library(dplyr)
 
 ```{r}
 strawberry <- read.csv("straw1.csv")
-strawberry
 ```
 
 ```{r}
 glimpse(strawberry)
 ```
 
-unique(strawberry\$Week.Ending) has all NA values. unique(strawberry\$Geo.Level) has all "STATE" values. We can remove these columns.
-
-```{r}
-for (i in 1:dim(strawberry)[2]) {
-  a = unique(strawberry[,i])
-}
-```
-
 drop_one_value_col(df): drop a column that only contains one value
 
 ```{r}
 drop_one_value_col = function(df) {
-  df %>%
-    select(where(~ n_distinct(.) > 1))
+  drop <- NULL
+  for (i in 1:dim(df)[2]) {
+    if(df |> distinct(df[, i]) |> count() == 1) {
+      drop = c(drop, i)
+    }
+  }
+  if (is.null(drop)) {
+    return("none")
+  }
+  else {
+    print("Columns dropped:")
+    print(colnames(df)[drop])
+    df <- df[, -1*drop]
+  }
 }
-straw_cleaned = drop_one_value_col(strawberry)
-straw_cleaned
+strawberry <- strawberry |> drop_one_value_col()
 ```
 
 ```{r}
 # separate into 3 tibbles by year
-strawberry_2023 = straw_cleaned %>% filter(Year == 2023)
-strawberry_2021 = straw_cleaned %>% filter(Year == 2021)
-strawberry_2019 = straw_cleaned %>% filter(Year == 2019)
+strawberry_2023 = strawberry |> filter(Year == 2023)
+strawberry_2021 = strawberry |> filter(Year == 2021)
+strawberry_2019 = strawberry |> filter(Year == 2019)
 ```
+
+Separating composite columns
+
+we want to split `Data.Item` into (fruit, category, item, metric)
+
+```{r}
+strawberry <-  strawberry |>
+  separate_wider_delim(
+    cols = `Data.Item`,
+    delim = ",",
+    names = c("Fruit", "Category", "Item", "Metric"),
+    too_many = "error",
+    too_few = "align_start"
+  )
+## use too_many and too_few to set up the separation operation
+```
+
+there is a problem to fix: leading white space
+
+```{r}
+strawberry$Category <- str_trim(strawberry$Category, side = "both")
+strawberry$Item <- str_trim(strawberry$Item, side = "both")
+```
+
+now examine the fruit column – find hidden subcolumns
+
+```{r}
+spr <- which(strawberry$Fruit=="STRAWBERRIES - APPLICATIONS")
+
+strw_apps <- strawberry |> slice(spr)
+
+##############################
+
+## this has the census data, too
+strw_chem <- strawberry |> slice(-1*spr)
+```
+
+now examine the rest of the columns
