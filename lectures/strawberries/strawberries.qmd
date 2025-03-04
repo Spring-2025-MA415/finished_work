@@ -85,3 +85,11 @@ strw_chem <- strawberry |> slice(-1*spr)
 ```
 
 now examine the rest of the columns
+
+clean data into different tables, visualize data
+
+my_functions.R -\> put all functions in this.
+
+source("my_functions.R") in my code to have access to those functions.
+
+pick 2 or 3 chemicals to look at. detailed analysis
