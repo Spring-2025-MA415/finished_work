@@ -1,0 +1,417 @@
+---
+title: "midterm"
+format: html
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+# Midterm Report
+
+## Preliminaries
+
+NOTES FROM 3/20
+
+-   keep only california and florida
+
+```{r}
+#| label: load libraries
+#| warning: false
+#| message: false
+
+library(knitr)  
+library(kableExtra)
+library(tidyverse)
+library(stringr)
+library(ggplot2)
+```
+
+```{r}
+#| label: read data - glimpse 
+
+strawberry <- read_csv("strawb_mar6.csv", 
+                       col_names = TRUE, 
+                       show_col_types = FALSE)
+
+source("my_functions.R")
+```
+
+## Data Cleaning
+
+```{r}
+#| label: drop unnecessary columns from `strawberry`
+
+strawb <- strawberry |> drop_one_value_col()
+```
+
+```{r}
+#| label: explore strawb data
+
+unique_vals(strawb)
+```
+
+```{r}
+#| label: split strawb into two data frames
+
+census <- strawb |> filter(Program == "CENSUS")
+survey <- strawb |> filter(Program == "SURVEY")
+```
+
+```{r}
+#| label: exploring unique values
+
+census <- census |> drop_one_value_col()
+survey <- survey |> drop_one_value_col()
+
+strw_census <- census |> select(-`State ANSI`)
+strw_survey <- survey |> select(-`State ANSI`, -`Week Ending`, -`Period`)
+
+rm(census, survey, strawberry, strawb, items)#?
+
+# don't need state ansi, week ending, period for survey
+# don't need state ansi for census
+
+#uniq_cens <- census |> show_unique()
+#uniq_sur <- survey |> show_unique()
+```
+
+```{r}
+#| label: work on census columns
+
+commod <- strw_census$Commodity
+
+# split Data Item
+strw_census <- strw_census |> separate_wider_delim(
+  cols = Commodity,
+  delim = ", ",
+  names = c("Income", "Net Cash Farm", "Strawberries"),
+  too_many = "error",
+  too_few = "align_start"
+)
+
+inc <- strw_census$Fruit |> unique
+
+#strw_census <- strw_census |> separate_wider_delim(
+#  cols = ,
+#  delim = "",
+#  names = c("", ""),
+#)
+```
+
+```{r}
+
+```
+
+### Exploring `census` Data Frame
+
+```{r}
+#| label: exploring census df
+
+unique_vals(census)
+
+```
+
+```{r}
+#| label: looking at `Domain Category`
+
+unique(census$`Domain Category`)
+```
+
+```{r}
+#| label: cleaning repetitive columns
+
+# removing labels from Data Item
+census <- census |> mutate(`Data Item` = str_replace(`Data Item`, "INCOME, NET CASH FARM, OF ", ""))
+census <- census |> mutate(`Data Item` = str_replace(`Data Item`, "STRAWBERRIES, ", ""))
+print("Data Item")
+unique(census$`Data Item`)
+cat("\n")
+
+
+# removing labels from Domain Category
+to_remove = c("NET GAIN: \\(", "TOTAL: \\(", "NET LOSS: \\(", "AREA OPERATED: \\(", "ECONOMIC CLASS: \\(", "FARM SALES: \\(", "NAICS CLASSIFICATION: \\(", "ORGANIC STATUS: \\(", "\\)")
+
+for (i in 1:length(to_remove)) {
+  census <- census |> mutate(`Domain Category` = str_replace(`Domain Category`, to_remove[i], ""))
+}
+print("Domain Category")
+unique(census$`Domain Category`)
+```
+
+```{r}
+#| label: splitting combined columns
+
+census <- census |> separate_wider_delim(
+  cols = `Data Item`,
+  delim = " - ",
+  names = c('Utilization', 'Category')
+  )
+
+unique(census$Utilization)
+cat("\n")
+unique(census$Category)
+```
+
+```{r}
+#| label: splitting `Category` column
+
+census <- census |> separate_wider_delim(
+  cols = `Category`,
+  delim = ", ",
+  names = c("Category", "Unit Measured"),
+  too_few = "align_start"
+)
+
+unique(census$Category)
+cat("\n")
+unique(census$`Unit Measured`)
+```
+
+```{r}
+#| label: removing "MEASURED IN" from `Unit Measured`
+
+census <- census |> mutate(`Unit Measured` = str_replace(`Unit Measured`, "MEASURED IN ", ""))
+unique(census$`Unit Measured`)
+```
+
+```{r}
+#| label: converting strings to numbers
+
+census$Value <- as.numeric(gsub(",", "", census$Value))
+census$`CV (%)` <- as.numeric(gsub(",", "", census$`CV (%)`))
+
+sum(is.na(census$Value))
+sum(is.na(census$`CV (%)`))
+```
+
+```{r}
+#| label: rename column, splitting column
+
+# renaming `Utilization` to `Production` since incorrectly labeled and is to be split
+census <- census |> rename(Production = Utilization)
+
+# splitting `Production` into `Production` and `Marketing Channel`
+census <- census |> separate_wider_delim(
+  cols = `Production`,
+  delim = ", ",
+  names = c("Production", "Marketing Channel"),
+  too_few = "align_start"
+)
+```
+
+```{r}
+#| label: exploring census to see if more cleaning should be done
+
+unique_vals(census)
+
+```
+
+```{r}
+#| label: fixing units
+  
+census$`Unit Measured` <- replace_na(census$`Unit Measured`, "ACRES")
+census <- census |> mutate(Category = str_replace(Category, "ACRES HARVESTED", "AREA HARVESTED"))
+
+unique(census$`Unit Measured`)
+cat("\n")
+unique(census$Category)
+```
+
+### Exploring `survey` Data Frame
+
+```{r}
+#| label: exploring survey df
+
+unique_vals(survey)
+
+```
+
+```{r}
+#| label: looking at `Domain Category`
+
+unique(survey$`Domain Category`)
+
+```
+
+```{r}
+#| label: splitting columns
+
+# splitting `Data Item`
+survey <- survey |> separate_wider_delim(
+  cols = `Data Item`,
+  delim = ' - ',
+  names = c("Commodity", "Class")
+)
+```
+
+```{r}
+#| label: removing unnecessary labels
+
+to_remove = c("CHEMICAL, FUNGICIDE: \\(", "CHEMICAL, INSECTICIDE: \\(", "CHEMICAL, OTHER: \\(", "CHEMICAL, HERBICIDE: \\(", "FERTILIZER: \\(", "\\)")
+
+for (i in 1:length(to_remove)) {
+  survey <- survey |> mutate(`Domain Category` = str_replace(`Domain Category`, to_remove[i], ""))
+}
+print("Domain Category")
+unique(survey$`Domain Category`)
+
+survey <- survey |> mutate(`Domain Category` = str_replace(`Domain Category`, "NOT SPECIFIED", NA_character_))
+```
+
+```{r}
+#| label: looking for more unique values
+
+unique(survey$Commodity)
+cat("\n")
+unique(survey$Class)
+
+```
+
+```{r}
+#| label: splitting columns
+
+# starting with `Commodity`
+survey <- survey |> separate_wider_delim(
+  cols = Commodity,
+  delim = ", ",
+  names = c("Commodity", "Marketing Channel"),
+  too_few = "align_start"
+)
+
+
+# now working with `Class`
+survey <- survey |> mutate(Class = str_replace(Class, "ACRES HARVESTED", "AREA HARVESTED, MEASURED IN ACRES"))
+
+survey <- survey |> separate_wider_delim(
+  cols = Class,
+  delim = ", ",
+  names = c("Class", "Unit Measured"),
+  too_many = "drop"
+)
+
+unique(survey$Commodity)
+cat("\n")
+unique(survey$`Marketing Channel`)
+cat("\n")
+unique(survey$Class)
+cat("\n")
+unique(survey$`Unit Measured`)
+```
+
+```{r}
+#| label: looking at more unique values
+
+unique_vals(survey)
+
+```
+
+```{r}
+#| label: removing columns/unnecessary words
+
+survey <- survey |> drop_one_value_col()
+
+survey <- survey |> mutate(`Unit Measured` = str_replace(`Unit Measured`, "MEASURED IN ", ""))
+
+unique(survey$`Unit Measured`)
+```
+
+```{r}
+#| label: converting string to numeric
+
+survey$Value <- as.numeric(gsub(",", "", survey$Value))
+
+```
+
+#### Creating `chemicals` Data Frame
+
+```{r}
+#| label: new data frame for chemicals
+
+chemicals <- survey |> filter(str_starts(Domain, "CHEMICAL")) |> drop_one_value_col()
+
+unique(chemicals$Domain)
+
+```
+
+```{r}
+#| label: cleaning up chemicals data frame
+
+chemicals <- chemicals |> mutate(Domain = str_replace(Domain, "CHEMICAL, ", ""))
+chemicals <- chemicals |> rename(`Pesticide Type` = Domain)
+chemicals <- chemicals |> rename(Pesticide = `Domain Category`)
+
+chemicals <- chemicals |> separate_wider_delim(
+  cols = Pesticide,
+  delim = " = ",
+  names = c("Pesticide", "Pesticide Chemical Code"),
+  too_few = "align_start"
+)
+
+```
+
+#### Splitting `Week` numbers and `Marketing Year` from `Period`
+
+```{r}
+#| label: creating year and marketing_year data frames
+
+survey_marketingyear <- survey |> filter(Period == "MARKETING YEAR") |> drop_one_value_col()
+survey_weeks <- survey |> filter(Period != "MARKETING YEAR") |> drop_one_value_col()
+
+```
+
+## Data Analysis
+
+```{r}
+#| label: where strawberries are grown
+
+acres <- census |> 
+  filter(`Unit Measured` == "ACRES" & `Category` == "AREA HARVESTED") |> 
+  mutate(
+    Value = replace_na(Value, 0),
+    Label = ifelse(Value == 0,"NA", Value)
+  ) |> 
+  drop_one_value_col() |>
+  arrange(desc(Value))
+
+
+ggplot(acres, aes(State, Value)) +
+  geom_col(fill = "lightblue") +
+  geom_text(aes(label = Label), 
+            vjust = -0.5, 
+            color = "black", 
+            size = 2.5) + 
+  labs(
+    title = "Acres of Strawberries Planted by State",
+    x = "State",
+    y = "Acres"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(
+    limits = c(0, 5000)
+  )
+```
+
+The above visualization shows how many acres of strawberries have been planted and in which states. The majority of strawberries are grown in California, with 4,228 acres grown. Florida has grown the next largest amount of strawberries, with 704 acres grown. However, this is still a large gap between acres grown, showing that California is the largest strawberry grower out of the states shown. The rest of the plotted states do not have nearly as many acres planted as California and Florida. Rhode Island did not have any data on how many acres of strawberries were planted, so it was visualized with a label of "NA".
+
+```{r}
+#| label: amount of chemicals used, categorized
+
+chemical_counts <- chemicals |> count(`Pesticide Type`)
+chemical_counts <- chemical_counts |> mutate(n = as.numeric(n))
+
+ggplot(chemical_counts, aes(`Pesticide Type`, n)) +
+  geom_bar(stat = "identity", fill = 'pink') +
+  geom_text(aes(label = n), 
+            vjust = -0.5, 
+            color = "black", 
+            size = 2.5) +
+  labs(
+    title = "Pesticides Used on Strawberries",
+    x = "Pesticide",
+    y = "Count"
+  ) + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```

@@ -1,0 +1,186 @@
+---
+title: "MA415 Midterm Project"
+date: "2025 March 6"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+# EDA: Preparing Strawberry data for analysis
+
+Due: March 24
+
+As described in class, this document is a starter for the Midterm project.
+
+Your assignment is to clean, organize, and explore the data. Turn in a report that describes how your work has set the stage for further analysis and model building.
+
+The dataset contains strawberry farming data with details about conventional and organic cultivation. These data include information about chemicals used in strawberry farming, as well as sales, revenue and expense details.
+
+While there is no "right answer" for this assignment, there are characteristics for the report that are essential. For example, sata visualization is critical. So is producing tabular presentations and document structure. Your target audience consists of analysts who may take the next steps with the data analysis and modeling.
+
+Think of your report as a stage on which to showcase your ability to use R to work with data and produce professional reports. This is an opportunity to do some data storytelling.
+
+Submit your report on or before March 21 using the Midterm portal on Blackboard.
+
+## Introduction: foundations
+
+Before we begin to work with the strawberry data, let's talk about how we will approach the work.
+
+### Data cleaning and organization
+
+Cleaning and organizing data for analysis is an essential skill for data scientists. Serious data analyses must be presented with the data on which the results depend. The credibility of data analysis and modelling depends on the care taken in data preparation and organization.
+
+#### References
+
+In their handbook ["An introduction to data cleaning with R" by Edwin de Jonge and Mark van der Loo](https://cran.r-project.org/doc/contrib/de_Jonge+van_der_Loo-Introduction_to_data_cleaning_with_R.pdf), de Jonge and van der Loo go into detail about specific data cleaning isssues and how to handle them in R.
+
+["Problems, Methods, and Challenges in Comprehensive Data Cleansing" by Heiko Müller and Johann-Christoph Freytag](https://www.researchgate.net/profile/Heiko-Mueller/publication/228929938_Problems_methods_and_challenges_in_comprehensive_data_cleansing/links/09e415101b58541e2c000000/Problems-methods-and-challenges-in-comprehensive-data-cleansing.pdf) is a good companion to the de Jonge and van der Loo handbook, offering additional issues in their discussion.
+
+### Attitudes
+
+Mechanistic descriptions of data cleaning methods are insufficient.
+
+#### Data is the product (or by-product) of purposeful human activity
+
+Much of the data used in analysis accessed on local databases or online which may create the impression that the data have been carefully curated. Beware. Data are produced by people for a purpose, with a point-of-view, and at a time and location that may affect the data. The provenance and lineage of the data are meta data you should include when reporting analysis. Data collection is purposeful human activity with all of the risks and weaknesses that are part of any purposeful human activity.
+
+#### Data is language
+
+Data has meaning. Data can be included in sentences related to the meaning of the data. Cleaning and organizing data should be informed by the meaning the data convey and how that meaning relates to the research you are doing do achieve this important result.
+
+-   Immerse yourself in the data. Put data into context.
+
+-   Visualize the data to find problems, confirm your understandings, and plan your data organization. People do a bad job of seeing meaningful patterns in data but a good job of seeing patterns of all kinds when data are rendered as plots. As you product and show visualizations, ask your self and those who view your presentations, "what do you see?" and "what do you wonder?"
+
+## Example: Strawberries
+
+### Public information
+
+[WHO says strawberries may not be so safe for you--2017March16](https://med.news.am/eng/news/13621/who-says-strawberries-may-not-be-so-safe-for-you.html)
+
+[Pesticides + poison gases = cheap, year-round strawberries 2019March20](https://www.ewg.org/foodnews/strawberries.php)
+
+[Multistate Outbreak of Hepatitis A Virus Infections Linked to Fresh Organic Strawberries-2022March5](https://www.cdc.gov/hepatitis/outbreaks/fresh-strawberries-2022/?CDC_AAref_Val=https://www.cdc.gov/hepatitis/outbreaks/2022/hav-contaminated-food/index.htm)
+
+[Strawberry makes list of cancer-fighting foods-2023May31](https://issuu.com/mechlocal/docs/053123_mech_asf/s/25386339)
+
+## What is the question?
+
+-   Where they are grown? By whom?
+
+-   Are they really loaded with carcinogenic poisons?
+
+-   Are they really good for your health? Bad for your health?
+
+-   Are organic strawberries carriers of deadly diseases?
+
+-   When I go to the market should I buy conventional or organic strawberries?
+
+## The data
+
+The data set for this assignment has been selected from:
+
+[strawberries 2025march6](https://va-dmz-quickstats.va-dmz-asev3.appserviceenvironment.us/results/B40FC8C0-E9E1-3F96-B259-DC65147DA53B)
+
+<!-- and has been stored on the blackboard as strawberries25_v3.csv. -->
+
+## USDA NASS
+
+```{r}
+#| label: load libraries
+#| warning: false
+#| message: false
+
+library(knitr)  
+library(kableExtra)
+library(tidyverse)
+library(stringr)
+```
+
+## Read the file
+
+```{r}
+#| label: read data - glimpse 
+
+strawberry <- read_csv("strawb_mar6.csv", col_names = TRUE)
+
+source("my_functions.R")
+
+```
+
+Examine the data. How is it organized?
+
+```{r}
+strawb <- strawberry |> drop_one_value_col()
+```
+
+```{r}
+census_df <- strawb |> filter(Program == 'CENSUS')
+survey_df <- strawb |> filter(Program == 'SURVEY')
+
+census_df <- census_df |> drop_one_value_col()
+survey_df <- survey_df |> drop_one_value_col()
+```
+
+notes from 3/18:
+
+-   take dataset and break it into pieces -\> make enough to write about it
+
+-   CV (%): coefficient of variation
+
+    -   (standard deviation over the mean) \* 100
+
+    -   how narrow the distribution is
+
+    -   `Value` in strawb is the mean (?)
+
+    -   ex: say CV (%) is 6.9, value is 64,683,000. this means standard deviation is 4,463,058. so 95% confidence interval (according to the normal distribution) is 64,683,000 +/- 4,463,058
+
+    -   use log normal distribution for financial information (log x \~ N(mean, variance)
+
+-   gain: sold part of business and that is the gain
+
+```{r}
+#| label: exploring coefficient of variation
+
+mean = 2
+sd = .1
+from = mean - 4*sd
+to = mean + 4*sd
+
+x = seq(from=from, to=to, by = 0.01)
+y = dnorm(x=x, mean=mean, sd=sd) # density function for normal distribution
+
+### side note:
+# d is for density/probability mass (PDF) f_x (x)
+# p is for probability (CDF) F_x (x)
+# q is for quartile F^(-1)_x (x)
+# r is for random draws --- if you want data replication, set.seed(number)
+
+cvp <- (sd/mean)*100
+
+plot(x, y, type="l", main=cvp)
+```
+
+based on the plot above, 5 is the coefficient of variation (%). 1.8, 2.2 is 2 sd from the mean because sd=0.1
+
+```{r}
+#| label: explore strawb data
+
+# split into tables: one for census, one for survey -- done
+# write a function to discover unique values (strawb$col |> unique()) -- done
+# split into tables: states ??????
+# write a function for that possibly? put in my_functions.R
+# create multiple columns from the compounded columns (commodity, data item, beginning of domain category) -- done
+# convert values and CV into numbers -- done
+# turn (H) and (D) into NAs -- done
+
+# find something that looks like it's driving income
+# how many strawberries are selling?
+# CWT is hundred weight (hundreds of pounds of strawberries)
+# is fertilizer driving the yield in the field?
+
+# find out what kable and kable extra is. it is part of knitr library. i think it's for tables?????
+# for plots: use ggplot
+```

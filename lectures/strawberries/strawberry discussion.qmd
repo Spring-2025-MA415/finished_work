@@ -1,0 +1,16 @@
+---
+title: "strawberry discussion"
+format: html
+---
+
+supposedly vajinder will be posting her code??
+
+ordspub.epa.gov/pesticides
+
+google online what the most dangerous chemicals for strawberries are
+what makes it top 10 most dangerous chemicals? 
+
+use kable extra to show the dataframes
+
+
+linear regression

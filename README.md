@@ -29,4 +29,12 @@
 * strawberries.qmd
   * Using straw1.csv to explore the dataset
 * straw1.csv
-  * strawberry csv file that we're working wtih
+  * strawberry csv file that we're working with
+
+## Midterm_Strawberries - File Descriptions
+* midterm1.qmd
+  * Quarto document with my work on the midterm.
+* my_functions.R
+  * R file of functions that are sourced in the Quarto document
+* strawb_mar6.csv
+  * Strawberry dataset to clean for the midterm
