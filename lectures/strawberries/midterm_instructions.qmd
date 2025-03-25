@@ -184,3 +184,7 @@ based on the plot above, 5 is the coefficient of variation (%). 1.8, 2.2 is 2 sd
 # find out what kable and kable extra is. it is part of knitr library. i think it's for tables?????
 # for plots: use ggplot
 ```
+
+```{r}
+
+```
