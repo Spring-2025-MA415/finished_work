@@ -186,5 +186,9 @@ based on the plot above, 5 is the coefficient of variation (%). 1.8, 2.2 is 2 sd
 ```
 
 ```{r}
+## to convert strings into numbers
 
+# parse_number(.....)
+
+# sum Value to see if Total matches
 ```

@@ -1,0 +1,410 @@
+---
+title: "MA415 Midterm Project"
+date: "2025 March 6"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+# EDA: Preparing Strawberry data for analysis
+
+Due: March 21
+
+As described in class, this document is a starter for the Midterm project.
+
+Your assignment is to clean, organize, and explore the data. Turn in a report that describes how your work has set the stage for further analysis and model building.
+
+The dataset contains strawberry farming data with details about conventional and organic cultivation. These data include information about chemicals used in strawberry farming, as well as sales, revenue and expense details.
+
+While there is no "right answer" for this assignment, there are characteristics for the report that are essential. For example, sata visualization is critical. So is producing tabular presentations and document structure. Your target audience consists of analysts who may take the next steps with the data analysis and modeling.
+
+Think of your report as a stage on which to showcase your ability to use R to work with data and produce professional reports. This is an opportunity to do some data storytelling.
+
+Submit your report on or before March 21 using the Midterm portal on Blackboard.
+
+## Introduction: foundations
+
+Before we begin to work with the strawberry data, let's talk about how we will approach the work.
+
+### Data cleaning and organization
+
+Cleaning and organizing data for analysis is an essential skill for data scientists. Serious data analyses must be presented with the data on which the results depend. The credibility of data analysis and modelling depends on the care taken in data preparation and organization.
+
+#### References
+
+In their handbook ["An introduction to data cleaning with R" by Edwin de Jonge and Mark van der Loo](https://cran.r-project.org/doc/contrib/de_Jonge+van_der_Loo-Introduction_to_data_cleaning_with_R.pdf), de Jonge and van der Loo go into detail about specific data cleaning isssues and how to handle them in R.
+
+["Problems, Methods, and Challenges in Comprehensive Data Cleansing" by Heiko Müller and Johann-Christoph Freytag](https://www.researchgate.net/profile/Heiko-Mueller/publication/228929938_Problems_methods_and_challenges_in_comprehensive_data_cleansing/links/09e415101b58541e2c000000/Problems-methods-and-challenges-in-comprehensive-data-cleansing.pdf) is a good companion to the de Jonge and van der Loo handbook, offering additional issues in their discussion.
+
+<p style="page-break-before:always">
+
+</p>
+
+### Attitudes
+
+Mechanistic descriptions of data cleaning methods are insufficient.
+
+#### Data is the product (or by-product) of purposeful human activity
+
+Much of the data used in analysis accessed on local databases or online which may create the impression that the data have been carefully curated. Beware. Data are produced by people for a purpose, with a point-of-view, and at a time and location that may affect the data. The provenance and lineage of the data are meta data you should include when reporting analysis. Data collection is purposeful human activity with all of the risks and weaknesses that are part of any purposeful human activity.
+
+#### Data is language
+
+Data has meaning. Data can be included in sentences related to the meaning of the data. Cleaning and organizing data should be informed by the meaning the data convey and how that meaning relates to the research you are doing do achieve this important result.
+
+-   Immerse yourself in the data. Put data into context.
+
+-   Visualize the data to find problems, confirm your understandings, and plan your data organization. People do a bad job of seeing meaningful patterns in data but a good job of seeing patterns of all kinds when data are rendered as plots. As you product and show visualizations, ask your self and those who view your presentations, "what do you see?" and "what do you wonder?"
+
+## Example: Strawberries
+
+### Public information
+
+[WHO says strawberries may not be so safe for you--2017March16](https://med.news.am/eng/news/13621/who-says-strawberries-may-not-be-so-safe-for-you.html)
+
+[Pesticides + poison gases = cheap, year-round strawberries 2019March20](https://www.ewg.org/foodnews/strawberries.php)
+
+[Multistate Outbreak of Hepatitis A Virus Infections Linked to Fresh Organic Strawberries-2022March5](https://www.cdc.gov/hepatitis/outbreaks/fresh-strawberries-2022/?CDC_AAref_Val=https://www.cdc.gov/hepatitis/outbreaks/2022/hav-contaminated-food/index.htm)
+
+[Strawberry makes list of cancer-fighting foods-2023May31](https://issuu.com/mechlocal/docs/053123_mech_asf/s/25386339)
+
+## What is the question?
+
+-   Where they are grown? By whom?
+
+-   Are they really loaded with carcinogenic poisons?
+
+-   Are they really good for your health? Bad for your health?
+
+-   Are organic strawberries carriers of deadly diseases?
+
+-   When I go to the market should I buy conventional or organic strawberries?
+
+## The data
+
+The data set for this assignment has been selected from:
+
+[strawberries 2025march6](https://va-dmz-quickstats.va-dmz-asev3.appserviceenvironment.us/results/B40FC8C0-E9E1-3F96-B259-DC65147DA53B)
+
+<!-- and has been stored on the blackboard as strawberries25_v3.csv. -->
+
+## USDA NASS
+
+```{r}
+#| label: load libraries
+#| warning: false
+#| message: false
+
+library(knitr)  
+library(kableExtra)
+library(tidyverse)
+library(stringr)
+```
+
+## Read the file
+
+```{r}
+#| label: read data - glimpse 
+
+
+strawberry <- read_csv("strawb_mar6(1).csv", 
+                       col_names = TRUE,
+                       show_col_types = FALSE)
+
+source("my_functions.R")
+
+```
+
+Examine the data. How is it organized?
+
+```{r}
+
+strawb <- strawberry |> drop_one_value_col()
+
+
+```
+
+```{r}
+#| label: explore strawb data
+
+# assume data is a tibble
+# n_show is the number of rows to show
+
+
+
+show_unique <- function(data, nrows=10 ){
+  # make a tibble items to hold the data to show
+  # browser()
+  a <- nrows * dim(data)[2]  # number of cells in items
+  items <- rep(" ", a) # items will coerce everything to char
+  dim(items) <- c(nrows ,dim(data)[2]) # shape items
+  items <- as_tibble(items)
+  colnames(items) <- colnames(data)
+  # browser()
+  for(i in 1:dim(data)[2]){
+
+    col_items <- unique(data[,i])
+    # row_ex is the number of rows needed 
+    # to make the column length conformable with items
+    row_ex <- nrows - dim(col_items)[1] 
+    if(row_ex >= 0){
+      ex_rows <- tibble(rep(" ",row_ex))
+      colnames(ex_rows) <- colnames(col_items)
+      col_add <- rbind2(col_items, ex_rows)
+      
+    } else if(row_ex < 0){
+      col_add <- col_items[1:10,]
+      
+    }
+
+    items[,i] <- col_add
+
+  }
+  
+  return(items)
+}
+
+## test <- show_unique(strawb, 10)
+
+
+```
+
+```{r}
+#|label: split strawb into census and survey pieces
+
+strw_census <- strawb |> filter(Program == "CENSUS")
+
+strw_survey <- strawb |> filter(Program == "SURVEY")
+
+nrow(strawb) == (nrow(strw_census) + nrow(strw_survey))
+
+```
+
+```{r}
+#| label: examine Census and survey tibbles
+#| warning: false
+
+
+s_census <- strw_census |> drop_one_value_col(prt_val = TRUE)
+
+s_survey <- strw_survey |> drop_one_value_col(prt_val = TRUE)
+
+
+unique_sur <- s_survey |> show_unique(nrows = 10)
+
+unique_cen <- s_census |> show_unique(nrows = 10)
+
+
+strw_census <- s_census |> select(-`State ANSI`)
+
+strw_survey <- s_survey |> select(-`State ANSI`, -`Week Ending`, -Period)
+
+rm(s_census, s_survey, strawberry, strawb, items)
+
+
+```
+
+```{r}
+#| label: work on Census columns
+
+commod <- strw_census$Commodity |> unique()
+
+#### split Data Item
+
+strw_census <- strw_census |>
+  separate_wider_delim(  cols = Commodity,
+                         delim = ",",
+                         names = c("INCOME", 
+                                   "NET CASH FARM",
+                                   "STRAW"
+                                               ),
+                         too_many = "error",
+                         names_sep = " ",
+                         too_few = "align_start"
+  )
+
+
+
+#inc <- strw_census$Fruit |> unique()
+
+#strw_census <- strw_census |>
+ # separate_wider_delim(  cols = Fruit,
+  #                      delim = ",",
+   #                     names = c("INCOME", 
+    #                               "STRAWB"
+     #                                          ),
+      #                   too_many = "error",
+       #                  too_few = "align_start"
+  #)
+
+```
+
+```{r}
+#| label: Assignment shortner results
+
+straw_cen_f <- strw_census |> filter(State == "FLORIDA")
+
+straw_sur_f <- strw_survey |> filter(State == "FLORIDA")
+straw_cen_c <- strw_census |> filter(State == "CALIFORNIA")
+straw_sur_c <- strw_survey |> filter(State == "CALIFORNIA")
+
+rm(strw_census, strw_survey, unique_cen, unique_sur)
+
+```
+
+March 25
+
+```{r}
+#| label: California
+
+unique_c_cen <- straw_cen_c |> show_unique(nrows = 10)
+
+## look at 2022
+
+str_cen_c_22 <- straw_cen_c |> filter(Year==2022)
+
+str_cen_c_22 <- str_cen_c_22 |> drop_one_value_col(prt_val = T)
+
+
+
+
+
+```
+
+```{r}
+#| label: str_cen_c_22 form columns
+
+unique_c_cen_22 <- str_cen_c_22 |> show_unique(nrows = 10)
+
+## work on "item" column
+
+## trim off the leading "OF OPERATIONS - "
+
+str_cen_c_22b  <- str_cen_c_22 |>
+  separate_wider_delim(  cols = `Data Item`,
+                         delim = " - ",
+                         names = c("old", 
+                                   "new"),
+                         too_many = "error",
+                         too_few = "align_start"
+                                               )
+str_cen_c_22b <- str_cen_c_22b |> drop_one_value_col(prt_val = T)  
+
+## OH! there are producers and operators
+
+str_cen_c_22c  <- str_cen_c_22b |>
+  separate_wider_delim(  cols = old,
+                         delim = "F ",
+                         names = c("old1", 
+                                   "type"),
+                         too_many = "error",
+                         too_few = "align_start")
+
+str_cen_c_22 <- str_cen_c_22c |> select(-old1)
+
+rm(str_cen_c_22b, str_cen_c_22c)
+  
+```
+
+Now we can see how this table is shaping up. We're going to get information about the structure of the industry and the financial results in 2021 and 2022.
+
+Now let's split the table further to isolate those results and try to make sense of them. We are likely to need some external information.
+
+```{r}
+#| label: looking at operations and producers separately
+
+str_cen_c_22_op <- str_cen_c_22 |> filter(type == "OPERATIONS")
+
+str_cen_c_22_pr <- str_cen_c_22 |> filter(type == "PRODUCERS")
+
+
+```
+
+There's still too much information here. Let's build a table that examines Net Income by Area Operated
+
+```{r}
+#| label: str_cen_c_22_op Net Income by Area Harvested
+
+library(readr)
+library(scales)
+
+netinc_area <- str_cen_c_22_op |> filter(Domain == "AREA OPERATED")
+
+netinc_total <- str_cen_c_22_op |> filter(new =="NET INCOME" & Domain == "TOTAL")
+
+
+a <- sum(parse_number(netinc_area$Value))
+a
+
+format(a, big.mark=",")
+## millions
+format(round(a/1000000,1), big.mark=",")
+
+format(round(a/10^6,1), big.mark=",")
+
+dollar <- label_currency(a, 
+              accuracy = NULL,
+             scale = 1,
+             prefix = "$",
+             suffix = "",
+              big.mark = ",",
+             decimal.mark = ".",
+               trim = TRUE,
+            largest_with_fractional = 1e+05 )
+
+label_currency(accuracy=.01, 
+             scale_cut=cut_short_scale())(a)
+
+label_currency(accuracy=NULL, 
+             scale_cut=cut_long_scale())(a)
+
+
+```
+
+To build a table, use the data in the Domain Category, Value and CV% columns.
+
+```{r}
+#| label: build a table
+
+## get the range out of Doman Category
+
+netinc_area_1  <- netinc_area |>
+  separate_wider_delim(  cols = `Domain Category`,
+                         delim = ": ",
+                         names = c("title", 
+                                   "range"),
+                         too_many = "error",
+                         too_few = "align_start")
+
+netinc_area_1$range <- gsub("[()]", "", netinc_area_1$range)
+
+netinc_area_1$range <- gsub(" ACRES", "", netinc_area_1$range)
+
+netinc_area_1$range <- gsub(" OR ", " TO ", netinc_area_1$range)
+
+netinc_area_1  <- netinc_area_1 |>
+  separate_wider_delim(  cols = range,
+                         delim = " TO ",
+                         names = c("lower", 
+                                   "upper"),
+                         too_many = "error",
+                         too_few = "align_start")
+
+netinc_area_1$lower <- parse_number(netinc_area_1$lower)
+
+netinc_area_1$upper <- parse_number(netinc_area_1$upper) |> round(0)
+
+netinc_area_1 <- netinc_area_1 |>arrange(lower)
+
+netinc_area_table <- netinc_area_1 |> select(lower, upper, Value, `CV (%)`)
+
+netinc_area_table$Value <- parse_number(netinc_area_table$Value)
+
+
+netinc_area_table |> kable()
+
+netinc_area_table |> kbl(caption = "Californina Average Net Income in 2022 by area cultivated  ") |> kable_classic(full_width = F, html_font = "Cambria") |> add_header_above(c( "Area Range (acres)" = 2, " " = 1, " " = 1))
+
+
+```
