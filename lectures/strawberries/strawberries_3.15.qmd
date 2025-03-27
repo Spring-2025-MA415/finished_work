@@ -408,3 +408,11 @@ netinc_area_table |> kbl(caption = "Californina Average Net Income in 2022 by ar
 
 
 ```
+
+Notes:
+
+-   explore the data enough so i have thoughts about it
+
+-   have around 2 tables
+
+-   show enough graphics
